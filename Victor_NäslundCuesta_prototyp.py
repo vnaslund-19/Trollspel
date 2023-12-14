@@ -1,3 +1,16 @@
+# Uppgift: 105, Arga Troll
+# Namn: Victor Näslund Cuesta
+# Datum: 26/11-2023
+# Kurskod: DD100N
+
+# Trollspelet går ut på att spelaren ska placera ut arga troll på ett fyrkantigt bräde.
+# Trollen ska inte befinna sig på samma rad, kolumn eller diagonal som ett annat troll
+
+# Datastrukturer:
+# En klass som innehåller allt som behövs för att spela trollspelet.
+# - En matris/board för att representera spelbrädet.
+# - En lista för att spara highscores.
+
 class TrollGame:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
@@ -25,6 +38,8 @@ class TrollGame:
             if self.board[row][i] == '*' or self.board[i][col] == '*':
                 return False
 
+        """Kontrollera diagonaler, går igenom alla rutor på brädet och
+        jämför om distansen till en '*' i x och y-led är lika stor"""
         for i in range(self.size):
             for j in range(self.size):
                 if abs(row - i) == abs(col - j) and self.board[i][j] == '*':
@@ -51,31 +66,45 @@ class TrollGame:
             file.write(f"{size}x{size} - {time:.2f} sekunder\n")
 
     def play_game(self):
-        """Huvudfunktion för att spela Trollspelet."""
         import time
 
         start_time = time.time()
         print("Välkommen till Trollspelet! Försök placera ett troll på varje rad och kolumn utan att bryta mot reglerna.")
         self.print_board()
 
-        for _ in range(self.size):
-            valid_move = False
-            while not valid_move:
-                try:
-                    row = int(input(f"Välj rad (0 till {self.size-1}): "))
-                    col = int(input(f"Välj kolumn (0 till {self.size-1}): "))
-                    valid_move = self.place_troll(row, col)
-                    if not valid_move:
-                        print("Ogiltigt drag, försök igen.")
-                    else:
-                        self.print_board()
-                except ValueError:
-                    print("Ogiltigt inmatningsformat, försök igen.")
+        placed_trolls = 0
+        while placed_trolls < self.size:
+            try:
+                user_input = input("Skriv 'undo' för att ångra senaste draget, 'ge upp' för att avsluta, eller välj rad (1 till {}): ".format(self.size))
 
-        end_time = time.time()
-        total_time = self.measure_time(start_time, end_time)
-        print(f"Grattis! Du löste spelet på {total_time:.2f} sekunder.")
-        self.save_to_highscore(total_time, self.size)
+                if user_input.lower() == 'undo':
+                    if self.undo_last_move():
+                        print("Senaste draget ångrat.")
+                        placed_trolls -= 1
+                    else:
+                        print("Inget att ångra.")
+                elif user_input.lower() == 'ge upp':
+                    print("Du har gett upp spelet.")
+                    break
+                else:
+                    row = int(user_input)
+                    col = int(input("Välj kolumn (1 till {}): ".format(self.size)))
+                    if self.place_troll(row - 1, col - 1):
+                        print("Troll placerat.")
+                        placed_trolls += 1
+                        self.print_board()
+                    else:
+                        print("Ogiltigt drag, försök igen.")
+            except ValueError:
+                print("Ogiltigt inmatningsformat, försök igen.")
+
+        if placed_trolls < self.size:
+            print("Spelet avslutat utan att lösa det helt.")
+        else:
+            end_time = time.time()
+            total_time = self.measure_time(start_time, end_time)
+            print("Grattis! Du löste spelet på {:.2f} sekunder.".format(total_time))
+            self.save_to_highscore(total_time, self.size)
 
 # Huvudprogram
 def main():
