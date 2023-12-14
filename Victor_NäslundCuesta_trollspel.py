@@ -6,16 +6,11 @@
 # Trollspelet går ut på att spelaren ska placera ut arga troll på ett fyrkantigt bräde.
 # Trollen ska inte befinna sig på samma rad, kolumn eller diagonal som ett annat troll
 
-# Datastrukturer:
-# En klass som innehåller allt som behövs för att spela trollspelet.
-# - En matris/board för att representera spelbrädet.
-# - En lista för att spara highscores.
-
 import tkinter as tk
 from tkinter import messagebox, PhotoImage
 import time
 
-class TrollGame:
+class troll_spel:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
         self.size = size
@@ -70,8 +65,6 @@ class TrollGame:
             file.write(f"{size}x{size} - {time:.2f} sekunder\n")
 
     def play_game(self):
-        import time
-
         start_time = time.time()
         print("Välkommen till Trollspelet! Försök placera ett troll på varje rad och kolumn utan att bryta mot reglerna.")
         self.print_board()
@@ -114,7 +107,7 @@ class TrollGame:
         return self._place_troll_recursive(0)
 
     def _place_troll_recursive(self, row):
-        """En rekursiv hjälpmetod som försöker placera trollen."""
+        """En rekursiv backtracking algoritm som försöker placera alla trollen."""
         if row == self.size:
             return True  # Alla troll är placerade
 
@@ -127,13 +120,13 @@ class TrollGame:
 
         return False  # Ingen placering fungerade för denna rad
 
-class TrollGameGUI:
+class troll_spel_gui:
     def __init__(self, game):
         self.game = game
         self.root = tk.Tk()
-        self.root.title("Troll Game")
-        self.empty_img = PhotoImage(file='empty.png')  # Sökväg till din tomma bild
-        self.troll_img = PhotoImage(file='troll.png')  # Sökväg till din trollbild
+        self.root.title("Trollspelet")
+        self.empty_img = PhotoImage(file='empty.png')
+        self.troll_img = PhotoImage(file='troll.png')
         self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
         self.create_board()
         self.create_control_buttons()
@@ -205,8 +198,8 @@ def get_board_size():
 # Huvudfunktion för att köra GUI-versionen av spelet
 def main():
     size = get_board_size()
-    game = TrollGame(size)
-    gui = TrollGameGUI(game)
+    game = troll_spel(size)
+    gui = troll_spel_gui(game)
     gui.run()
 
 
