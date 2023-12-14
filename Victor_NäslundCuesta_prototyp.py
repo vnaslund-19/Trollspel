@@ -11,7 +11,9 @@
 # - En matris/board för att representera spelbrädet.
 # - En lista för att spara highscores.
 
-"""snake_case?"""
+import tkinter as tk
+import time
+
 class TrollGame:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
@@ -108,12 +110,7 @@ class TrollGame:
             self.save_to_highscore(total_time, self.size)
 
     def solve_game(self):
-        """Löser spelet med en backtracking-algoritm."""
-        if self._place_troll_recursive(0):
-            print("En lösning hittades:")
-            self.print_board()
-        else:
-            print("Ingen lösning kunde hittas.")
+        return self._place_troll_recursive(0)
 
     def _place_troll_recursive(self, row):
         """En rekursiv hjälpmetod som försöker placera trollen."""
@@ -129,21 +126,85 @@ class TrollGame:
 
         return False  # Ingen placering fungerade för denna rad
 
-# Huvudprogram
-def main():
-    try:
-        size = int(input("Välj storleken på brädet (minst 4): "))
-        if size < 4:
-            raise ValueError
-    except ValueError:
-        print("Ogiltig storlek, använder standardstorleken 4x4.")
-        size = 4
+class TrollGameGUI:
+    def __init__(self, game):
+        self.game = game
+        self.root = tk.Tk()
+        self.root.title("Troll Game")
+        self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
+        self.create_board()
+        self.create_control_buttons()
+        self.start_time = time.time()
 
+    def create_board(self):
+        for row in range(self.game.size):
+            for col in range(self.game.size):
+                button = tk.Button(self.root, text='_', command=lambda r=row, c=col: self.place_troll(r, c), width=4, height=2)
+                button.grid(row=row, column=col)
+                self.buttons[row][col] = button
+
+    def create_control_buttons(self):
+        self.control_button = tk.Button(self.root, text='Lös spelet', command=self.solve_game)
+        self.control_button.grid(row=self.game.size, column=0, columnspan=self.game.size, sticky='ew')
+
+    def place_troll(self, row, col):
+        if self.game.is_valid_move(row, col):
+            self.game.place_troll(row, col)
+            self.update_board()
+            self.control_button.config(text='Ångra', command=self.undo_last_move)
+            if self.check_game_solved():
+                self.end_game()
+
+    def update_board(self):
+        for row in range(self.game.size):
+            for col in range(self.game.size):
+                if self.game.board[row][col] == '*':
+                    self.buttons[row][col].config(text='*', bg='lightgreen')
+                else:
+                    self.buttons[row][col].config(text='_', bg='SystemButtonFace')
+
+    def solve_game(self):
+        if self.game.solve_game():
+            self.update_board()
+            self.control_button.config(text="Spelet löst av algoritmen", state='disabled')
+            self.root.after(5000, self.root.destroy)  # Väntar 5 sekunder innan fönstret stängs
+        else:
+            print("Ingen lösning kunde hittas.")
+
+    def undo_last_move(self):
+        if self.game.undo_last_move():
+            self.update_board()
+
+    def end_game(self):
+        end_time = time.time()
+        total_time = end_time - self.start_time
+        print(f"Grattis! Du löste spelet på {total_time:.2f} sekunder.")
+        self.game.save_to_highscore(total_time, self.game.size)
+        self.root.destroy()
+
+    def check_game_solved(self):
+        return all('*' in row for row in self.game.board)
+
+    def run(self):
+        self.root.mainloop()
+
+def get_board_size():
+    while True:
+        try:
+            size = int(input("Välj storleken på brädet (minst 4): "))
+            if size >= 4:
+                return size
+            else:
+                print("Storleken måste vara minst 4.")
+        except ValueError:
+            print("Ange en giltig heltalsstorlek.")
+
+# Huvudfunktion för att köra GUI-versionen av spelet
+def main():
+    size = get_board_size()
     game = TrollGame(size)
-    auto_solve = input("Vill du lösa spelet automatiskt? (ja/nej): ").lower()
-    if auto_solve == 'ja':
-        game.solve_game()
-    else:
-        game.play_game()
+    gui = TrollGameGUI(game)
+    gui.run()
+
 
 main()
