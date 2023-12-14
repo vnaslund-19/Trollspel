@@ -1,3 +1,6 @@
 4x4 - 28.58 sekunder
 4x4 - 7.63 sekunder
 5x5 - 15.05 sekunder
+4x4 - 7.89 sekunder
+4x4 - 5.84 sekunder
+9x9 - 23.90 sekunder

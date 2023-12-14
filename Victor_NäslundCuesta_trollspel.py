@@ -12,6 +12,7 @@
 # - En lista för att spara highscores.
 
 import tkinter as tk
+from tkinter import messagebox, PhotoImage
 import time
 
 class TrollGame:
@@ -131,6 +132,8 @@ class TrollGameGUI:
         self.game = game
         self.root = tk.Tk()
         self.root.title("Troll Game")
+        self.empty_img = PhotoImage(file='empty.png')  # Sökväg till din tomma bild
+        self.troll_img = PhotoImage(file='troll.png')  # Sökväg till din trollbild
         self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
         self.create_board()
         self.create_control_buttons()
@@ -139,9 +142,17 @@ class TrollGameGUI:
     def create_board(self):
         for row in range(self.game.size):
             for col in range(self.game.size):
-                button = tk.Button(self.root, text='_', command=lambda r=row, c=col: self.place_troll(r, c), width=4, height=2)
+                button = tk.Button(self.root, image=self.empty_img, command=lambda r=row, c=col: self.place_troll(r, c))
                 button.grid(row=row, column=col)
                 self.buttons[row][col] = button
+
+    def update_board(self):
+        for row in range(self.game.size):
+            for col in range(self.game.size):
+                if self.game.board[row][col] == '*':
+                    self.buttons[row][col].config(image=self.troll_img)
+                else:
+                    self.buttons[row][col].config(image=self.empty_img)
 
     def create_control_buttons(self):
         self.control_button = tk.Button(self.root, text='Lös spelet', command=self.solve_game)
@@ -154,14 +165,6 @@ class TrollGameGUI:
             self.control_button.config(text='Ångra', command=self.undo_last_move)
             if self.check_game_solved():
                 self.end_game()
-
-    def update_board(self):
-        for row in range(self.game.size):
-            for col in range(self.game.size):
-                if self.game.board[row][col] == '*':
-                    self.buttons[row][col].config(text='*', bg='lightgreen')
-                else:
-                    self.buttons[row][col].config(text='_', bg='SystemButtonFace')
 
     def solve_game(self):
         if self.game.solve_game():
