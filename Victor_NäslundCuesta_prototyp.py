@@ -11,6 +11,7 @@
 # - En matris/board för att representera spelbrädet.
 # - En lista för att spara highscores.
 
+"""snake_case?"""
 class TrollGame:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
@@ -106,6 +107,28 @@ class TrollGame:
             print("Grattis! Du löste spelet på {:.2f} sekunder.".format(total_time))
             self.save_to_highscore(total_time, self.size)
 
+    def solve_game(self):
+        """Löser spelet med en backtracking-algoritm."""
+        if self._place_troll_recursive(0):
+            print("En lösning hittades:")
+            self.print_board()
+        else:
+            print("Ingen lösning kunde hittas.")
+
+    def _place_troll_recursive(self, row):
+        """En rekursiv hjälpmetod som försöker placera trollen."""
+        if row == self.size:
+            return True  # Alla troll är placerade
+
+        for col in range(self.size):
+            if self.is_valid_move(row, col):
+                self.board[row][col] = '*'  # Placera ett troll
+                if self._place_troll_recursive(row + 1):
+                    return True  # Gå vidare till nästa rad
+                self.board[row][col] = '_'  # Ångra placering och prova nästa kolumn
+
+        return False  # Ingen placering fungerade för denna rad
+
 # Huvudprogram
 def main():
     try:
@@ -117,6 +140,10 @@ def main():
         size = 4
 
     game = TrollGame(size)
-    game.play_game()
+    auto_solve = input("Vill du lösa spelet automatiskt? (ja/nej): ").lower()
+    if auto_solve == 'ja':
+        game.solve_game()
+    else:
+        game.play_game()
 
 main()
