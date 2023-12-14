@@ -10,7 +10,7 @@ import tkinter as tk
 from tkinter import messagebox, PhotoImage
 import time
 
-class troll_spel:
+class troll_game:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
         self.size = size
@@ -120,7 +120,7 @@ class troll_spel:
 
         return False  # Ingen placering fungerade för denna rad
 
-class troll_spel_gui:
+class troll_game_gui:
     def __init__(self, game):
         self.game = game
         self.root = tk.Tk()
@@ -198,8 +198,8 @@ def get_board_size():
 # Huvudfunktion för att köra GUI-versionen av spelet
 def main():
     size = get_board_size()
-    game = troll_spel(size)
-    gui = troll_spel_gui(game)
+    game = troll_game(size)
+    gui = troll_game_gui(game)
     gui.run()
 
 
