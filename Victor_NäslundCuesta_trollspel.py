@@ -6,6 +6,7 @@
 # Trollspelet går ut på att spelaren ska placera ut arga troll på ett fyrkantigt bräde.
 # Trollen ska inte befinna sig på samma rad, kolumn eller diagonal som ett annat troll
 
+import os
 import tkinter as tk
 from tkinter import messagebox, PhotoImage
 import time
@@ -139,14 +140,26 @@ class troll_game_gui:
         Använder sig av en instans av troll_game klassen (inparametern game)
         för all funktionalitet förutom det grafiska"""
         self.game = game
-        self.root = tk.Tk()
-        self.root.title("Trollspelet")
-        self.empty_img = PhotoImage(file='empty.png')
-        self.troll_img = PhotoImage(file='troll.png')
-        self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
-        self.create_board()
-        self.create_control_buttons()
-        self.start_time = time.time()
+        self.gui_initialized = False
+
+        # Check if image files exist
+        if os.path.exists('empty.png') and os.path.exists('troll.png'):
+            self.root = tk.Tk()
+            self.root.title("Trollspelet")
+
+            try:
+                self.empty_img = PhotoImage(file='empty.png')
+                self.troll_img = PhotoImage(file='troll.png')
+                self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
+                self.create_board()
+                self.create_control_buttons()
+                self.start_time = time.time()
+                self.gui_initialized = True
+            except tk.TclError:
+                print("\n!!!Ett fel uppstod vid laddning av bildfiler, spelet startas därför utan GUI.!!!\n")
+                self.root.destroy()
+        else:
+            print("\n!!!Bildfiler troll.png & empty.png hittades inte, spelet startas därför utan GUI.!!!\n")
 
     def create_board(self):
         """Skapar ett bräde av knappar i GUI:t."""
@@ -238,7 +251,11 @@ def main():
     size = get_board_size()
     game = troll_game(size)
     gui = troll_game_gui(game)
-    gui.run()
+    
+    if gui.gui_initialized:
+        gui.run()
+    else:
+        game.play_game()
 
 
 main()
