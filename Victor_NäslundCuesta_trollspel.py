@@ -6,13 +6,11 @@
 # Trollspelet går ut på att spelaren ska placera ut arga troll på ett fyrkantigt bräde.
 # Trollen ska inte befinna sig på samma rad, kolumn eller diagonal som ett annat troll
 
-# Datastrukturer:
-# En klass som innehåller allt som behövs för att spela trollspelet.
-# - En matris/board för att representera spelbrädet.
-# - En lista för att spara highscores.
+import tkinter as tk
+from tkinter import messagebox, PhotoImage
+import time
 
-"""snake_case?"""
-class TrollGame:
+class troll_game:
     def __init__(self, size):
         """Skapar ett nytt trollspel med angiven storlek."""
         self.size = size
@@ -67,8 +65,6 @@ class TrollGame:
             file.write(f"{size}x{size} - {time:.2f} sekunder\n")
 
     def play_game(self):
-        import time
-
         start_time = time.time()
         print("Välkommen till Trollspelet! Försök placera ett troll på varje rad och kolumn utan att bryta mot reglerna.")
         self.print_board()
@@ -108,15 +104,10 @@ class TrollGame:
             self.save_to_highscore(total_time, self.size)
 
     def solve_game(self):
-        """Löser spelet med en backtracking-algoritm."""
-        if self._place_troll_recursive(0):
-            print("En lösning hittades:")
-            self.print_board()
-        else:
-            print("Ingen lösning kunde hittas.")
+        return self._place_troll_recursive(0)
 
     def _place_troll_recursive(self, row):
-        """En rekursiv hjälpmetod som försöker placera trollen."""
+        """En rekursiv backtracking algoritm som försöker placera alla trollen."""
         if row == self.size:
             return True  # Alla troll är placerade
 
@@ -129,21 +120,107 @@ class TrollGame:
 
         return False  # Ingen placering fungerade för denna rad
 
-# Huvudprogram
-def main():
-    try:
-        size = int(input("Välj storleken på brädet (minst 4): "))
-        if size < 4:
-            raise ValueError
-    except ValueError:
-        print("Ogiltig storlek, använder standardstorleken 4x4.")
-        size = 4
+class troll_game_gui:
+    def __init__(self, game):
+        """Initierar GUI-klassen för trollspelet. 
+        Använder sig av en instans av troll_game klassen
+        för all funktionalitet förutom det grafiska"""
+        self.game = game
+        self.root = tk.Tk()
+        self.root.title("Trollspelet")
+        self.empty_img = PhotoImage(file='empty.png')
+        self.troll_img = PhotoImage(file='troll.png')
+        self.buttons = [[None for _ in range(game.size)] for _ in range(game.size)]
+        self.create_board()
+        self.create_control_buttons()
+        self.start_time = time.time()
 
-    game = TrollGame(size)
-    auto_solve = input("Vill du lösa spelet automatiskt? (ja/nej): ").lower()
-    if auto_solve == 'ja':
-        game.solve_game()
-    else:
-        game.play_game()
+    def create_board(self):
+        """Skapar ett bräde av knappar i GUI:t."""
+        for row in range(self.game.size):
+            for col in range(self.game.size):
+                button = tk.Button(self.root, image=self.empty_img, command=lambda r=row, c=col: self.place_troll(r, c))
+                button.grid(row=row, column=col)
+                self.buttons[row][col] = button
+
+    def update_board(self):
+        """Uppdaterar brädet i GUI:t för att reflektera spelets nuvarande tillstånd."""
+        for row in range(self.game.size):
+            for col in range(self.game.size):
+                if self.game.board[row][col] == '*':
+                    self.buttons[row][col].config(image=self.troll_img)
+                else:
+                    self.buttons[row][col].config(image=self.empty_img) # Måste också uppdateras pga undo
+
+    def create_control_buttons(self):
+        """Skapar kontrollknappar för GUI:t."""
+        self.control_button = tk.Button(self.root, text='Lös spelet', command=self.solve_game)
+        self.control_button.grid(row=self.game.size, column=0, columnspan=self.game.size, sticky='ew')
+
+    def place_troll(self, row, col):
+        """Hanterar logiken för att placera ett troll på brädet."""
+        if self.game.is_valid_move(row, col):
+            self.game.place_troll(row, col)
+            self.update_board()
+            self.control_button.config(text='Ångra', command=self.undo_last_move)
+            if self.check_game_solved():
+                self.end_game()
+
+    def solve_game(self):
+        """Använder algoritmen från troll_game för att försöka lösa spelet automatiskt."""
+        if self.game.solve_game():
+            self.update_board()
+            self.control_button.config(text="Spelet löst av algoritmen", state='disabled')
+            self.root.after(5000, self.root.destroy)  # Väntar 5 sekunder innan fönstret stängs
+        else:
+            print("Ingen lösning kunde hittas.")
+
+    def undo_last_move(self):
+        """Ångrar det senaste draget gjort av spelaren."""
+        if self.game.undo_last_move():
+            self.update_board()
+
+    def end_game(self):
+        """Avslutar spelet och sparar resultatet i highscore-filen."""
+        end_time = time.time()
+        total_time = end_time - self.start_time
+        print(f"Grattis! Du löste spelet på {total_time:.2f} sekunder.")
+        self.game.save_to_highscore(total_time, self.game.size)
+        self.root.destroy()
+
+    def check_game_solved(self):
+        """Kontrollerar om spelet är löst."""
+        return all('*' in row for row in self.game.board)
+
+    def run(self):
+        """Startar huvudloopen för GUI:t."""
+        self.root.mainloop()
+
+def get_board_size():
+    while True:
+        try:
+            size = int(input("Välj storleken på brädet (minimum 4) (max 10 rekommenderas men beror på skärmstorlek): "))
+            if size >= 4:
+                return size
+            else:
+                print("Storleken måste vara minst 4.")
+        except ValueError:
+            print("Ange en giltig heltalsstorlek.")
+
+def print_game_instructions():
+    print("Välkommen till Trollspelet")
+    print("Reglerna för spelet är ganska enkla. För att vinna bör du placera:")
+    print("-Ett troll per rad.")
+    print("-Ett troll per kolumn.")
+    print("-Inga troll får finnas på samma diagonal.")
+
+# Huvudfunktion för att köra GUI-versionen av spelet
+def main():
+    print_game_instructions()
+    size = get_board_size()
+    game = troll_game(size)
+    gui = troll_game_gui(game)
+    gui.run()
+
 
 main()
