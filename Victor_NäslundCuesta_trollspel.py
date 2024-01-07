@@ -12,7 +12,7 @@ import time
 
 class troll_game:
     def __init__(self, size):
-        """Skapar ett nytt trollspel med angiven storlek."""
+        """Skapar ett nytt trollspel med angiven storlek (size)"""
         self.size = size
         self.board = [['_' for _ in range(size)] for _ in range(size)]
         self.last_move = None
@@ -24,7 +24,9 @@ class troll_game:
         print()
 
     def place_troll(self, row, col):
-        """Placerar ett troll på angiven position om det är tillåtet."""
+        """Placerar ett troll på angiven position om det är tillåtet
+        utifrån inparametrarna som är raden och kolumnen.
+        Metoden returnerar true om trollet placerades, annars false"""
         if self.is_valid_move(row, col):
             self.board[row][col] = '*'
             self.last_move = (row, col)
@@ -32,7 +34,9 @@ class troll_game:
         return False
 
     def is_valid_move(self, row, col):
-        """Kontrollerar om ett drag är tillåtet enligt spelets regler."""
+        """Kontrollerar om ett drag är tillåtet enligt spelets regler
+        utifrån inparametrarna som är raden och kolumnen.
+        Metoden returnerar true om trollet kan placeras, annars false"""
         for i in range(self.size):
             if self.board[row][i] == '*' or self.board[i][col] == '*':
                 return False
@@ -47,7 +51,8 @@ class troll_game:
         return True
 
     def undo_last_move(self):
-        """Ångrar det senaste draget."""
+        """Ångrar det senaste draget.
+        Metoden returnerar true om draget ångrades, annars false"""
         if self.last_move:
             row, col = self.last_move
             self.board[row][col] = '_'
@@ -56,15 +61,21 @@ class troll_game:
         return False
 
     def measure_time(self, start_time, end_time):
-        """Mäter tiden det tar för spelaren att lösa spelet."""
+        """Mäter tiden det tar för spelaren att lösa spelet
+        mha inparametrarna som är starttid och sluttid.
+        Returnerar tiden"""
         return end_time - start_time
 
     def save_to_highscore(self, time, size):
-        """Sparar tid och storlek i highscore-listan och skriver till filen."""
+        """Sparar tid och storlek i highscore-listan och skriver till filen.
+        Time är tiden det tog att klara spelet för användaren och size är
+        hur stort brädet var"""
         with open("highscores.txt", "a") as file:
             file.write(f"{size}x{size} - {time:.2f} sekunder\n")
 
     def play_game(self):
+        """Huvudlogiken för att spela spelet utan GUI. 
+        Alltså används inte denna metod i denna version av spelet"""
         start_time = time.time()
         print("Välkommen till Trollspelet! Försök placera ett troll på varje rad och kolumn utan att bryta mot reglerna.")
         self.print_board()
@@ -104,10 +115,12 @@ class troll_game:
             self.save_to_highscore(total_time, self.size)
 
     def solve_game(self):
+        """Returnerar true om backtracking algoritmen hittade en lösning, annars false"""
         return self._place_troll_recursive(0)
 
     def _place_troll_recursive(self, row):
-        """En rekursiv backtracking algoritm som försöker placera alla trollen."""
+        """En rekursiv backtracking algoritm som försöker placera alla trollen.
+        inparametern row är vilken rad algoritmen befinner sig på (börjar alltid på 0)"""
         if row == self.size:
             return True  # Alla troll är placerade
 
@@ -123,7 +136,7 @@ class troll_game:
 class troll_game_gui:
     def __init__(self, game):
         """Initierar GUI-klassen för trollspelet. 
-        Använder sig av en instans av troll_game klassen
+        Använder sig av en instans av troll_game klassen (inparametern game)
         för all funktionalitet förutom det grafiska"""
         self.game = game
         self.root = tk.Tk()
@@ -158,7 +171,8 @@ class troll_game_gui:
         self.control_button.grid(row=self.game.size, column=0, columnspan=self.game.size, sticky='ew')
 
     def place_troll(self, row, col):
-        """Hanterar logiken för att placera ett troll på brädet."""
+        """Hanterar logiken för att placera ett troll på brädet.
+        row och col är koordinaterna för positionen där trollet ska placeras"""
         if self.game.is_valid_move(row, col):
             self.game.place_troll(row, col)
             self.update_board()
@@ -189,7 +203,8 @@ class troll_game_gui:
         self.root.destroy()
 
     def check_game_solved(self):
-        """Kontrollerar om spelet är löst."""
+        """Kontrollerar om spelet är löst.
+        Returnerar true om spelet är löst, annars false"""
         return all('*' in row for row in self.game.board)
 
     def run(self):
@@ -197,6 +212,8 @@ class troll_game_gui:
         self.root.mainloop()
 
 def get_board_size():
+    """Läser spelets storlek från användaren,
+    returnerar storleken"""
     while True:
         try:
             size = int(input("Välj storleken på brädet (minimum 4) (max 10 rekommenderas men beror på skärmstorlek): "))
@@ -208,6 +225,7 @@ def get_board_size():
             print("Ange en giltig heltalsstorlek.")
 
 def print_game_instructions():
+    """Skriver ut spelets instruktioner"""
     print("Välkommen till Trollspelet")
     print("Reglerna för spelet är ganska enkla. För att vinna bör du placera:")
     print("-Ett troll per rad.")
